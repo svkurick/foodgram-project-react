@@ -6,6 +6,9 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, filters, status
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+from rest_framework_simplejwt.tokens import Token
+from rest_framework_simplejwt.tokens import UntypedToken
 
 from .serializers import (
     UserSerializer,
@@ -21,15 +24,30 @@ class GetTokenAPIView(APIView):
     serializer_class = GetTokenSerializer
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            email = serializer.validated_data.get('email')
-            user = get_object_or_404(User, email=email)
-            refresh = RefreshToken.for_user(user)
-            token = str(refresh.access_token)
+        user = get_object_or_404(User, email=request.data.get('email'))
+        if user:
+            serializer = self.serializer_class(user, data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                refresh = RefreshToken.for_user(user)
+                token = str(refresh.access_token)
+            return Response({
+                'auth_token': token
+            }, status=status.HTTP_201_CREATED)
         return Response({
-            'auth_token': token
-        }, status=status.HTTP_201_CREATED)
+            'details': 'Нет такого пользователя'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def del_token(request):
+    token = request.data.get('token')
+    if token:
+        untyped_token = UntypedToken(token)
+        blacklisted_token = BlacklistedToken(token=untyped_token['jti'])
+        blacklisted_token.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response({'details': 'Токен не найден'})
 
 
 class UserViewSet(viewsets.ModelViewSet):

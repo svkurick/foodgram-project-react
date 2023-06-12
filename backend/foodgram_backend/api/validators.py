@@ -22,7 +22,7 @@ def validate_username(username):
     return username
 
 
-def validate_password(password, user):
+def validate_user_password(password, user):
     if not user.check_password(password):
         raise serializers.ValidationError('Некорректный пароль')
     return password

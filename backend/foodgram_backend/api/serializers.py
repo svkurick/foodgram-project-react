@@ -5,7 +5,11 @@ from rest_framework.generics import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 
 
-from .validators import validate_username, validate_email, validate_password
+from .validators import (
+    validate_username,
+    validate_email,
+    validate_user_password,
+)
 
 
 User = get_user_model()
@@ -60,18 +64,20 @@ class ChangePasswordSerializer(UserSerializer):
         model = User
 
     def validate_current_password(self, current_password):
-        return validate_password(current_password, self.instance)
+        return validate_user_password(current_password, self.instance)
 
 
 class GetTokenSerializer(serializers.Serializer):
     email = serializers.CharField(
         max_length=150,
         required=True,
+        allow_blank=False,
     )
     password = serializers.CharField(
         max_length=150,
         required=True,
+        allow_blank=False
     )
 
     def validate_password(self, password):
-        return validate_password(password, self.instance)
+        return validate_user_password(password, self.instance)
