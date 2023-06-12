@@ -1,4 +1,3 @@
-import re
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
@@ -44,65 +43,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 
-# class UserCreateSerializer(UserSerializer):
-#     password = serializers.CharField(max_length=150, required=True)
-#
-#     class Meta:
-#         fields = (
-#             'id',
-#             'username',
-#             "email",
-#             'first_name',
-#             'last_name',
-#             'is_subscribed',
-#             'password'
-#         )
-
-
-# class RegistrationSerializer(serializers.Serializer):
-#     email = serializers.EmailField(
-#         max_length=254,
-#         required=True,
-#         validators=[validate_email]
-#     )
-#     username = serializers.CharField(
-#         max_length=150,
-#         required=True,
-#         validators=[validate_username]
-#     )
-#     first_name = serializers.CharField(max_length=150, required=True)
-#     last_name = serializers.CharField(max_length=150, required=True)
-#
-#     def create(self, validated_data):
-#         serializer = UserSerializer(data=validated_data)
-#         if serializer.is_valid():
-#             user = User.objects.create_user(
-#                 email=validated_data.get('email'),
-#                 username=validated_data.get('username'),
-#                 first_name=validated_data.get('first_name'),
-#                 last_name=validated_data.get('last_name'),
-#             )
-#             user.set_password(validated_data.get('password'))
-#             user.save()
-#         return {
-#             'id': user.id,
-#             'username': user.username,
-#             'email': user.email,
-#             'first_name': user.first_name,
-#             'last_name': user.last_name
-#         }
-
-
 class GetTokenSerializer(serializers.Serializer):
     email = serializers.CharField(
         max_length=150,
         required=True,
-        # validators=[validate_email]
     )
     password = serializers.CharField(
         max_length=150,
         required=True,
-        # validators=[validate_password]
     )
 
     def validate_password(self, password):
