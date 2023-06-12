@@ -5,7 +5,7 @@ from rest_framework.generics import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 
 
-from .validators import validate_username, validate_email
+from .validators import validate_username, validate_email, validate_password
 
 
 User = get_user_model()
@@ -17,8 +17,8 @@ class UserSerializer(serializers.ModelSerializer):
         required=True,
         validators=[validate_username]
     )
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
+    first_name = serializers.CharField(max_length=150, required=True)
+    last_name = serializers.CharField(max_length=150, required=True)
     email = serializers.EmailField(
         max_length=254,
         required=True,
@@ -43,6 +43,26 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 
+class ChangePasswordSerializer(UserSerializer):
+    new_password = serializers.CharField(
+        max_length=150,
+        required=True,
+        write_only=True
+    )
+    current_password = serializers.CharField(
+        max_length=150,
+        required=True,
+        write_only=True
+    )
+
+    class Meta:
+        fields = ['current_password', 'new_password']
+        model = User
+
+    def validate_current_password(self, current_password):
+        return validate_password(current_password, self.instance)
+
+
 class GetTokenSerializer(serializers.Serializer):
     email = serializers.CharField(
         max_length=150,
@@ -54,10 +74,4 @@ class GetTokenSerializer(serializers.Serializer):
     )
 
     def validate_password(self, password):
-        email = self.initial_data.get('email')
-        if email is None:
-            raise serializers.ValidationError('Нельзя оставлять пустым')
-        user = get_object_or_404(User, email=email)
-        if not user.check_password(password):
-            raise serializers.ValidationError('Некорректный пароль')
-        return password
+        return validate_password(password, self.instance)

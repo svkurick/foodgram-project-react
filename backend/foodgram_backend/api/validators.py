@@ -1,5 +1,6 @@
 from rest_framework import serializers
 import re
+from rest_framework.generics import get_object_or_404
 
 from users.models import User
 
@@ -19,6 +20,12 @@ def validate_username(username):
         raise serializers.ValidationError(
             'Недопустимые символы')
     return username
+
+
+def validate_password(password, user):
+    if not user.check_password(password):
+        raise serializers.ValidationError('Некорректный пароль')
+    return password
 
 
 
