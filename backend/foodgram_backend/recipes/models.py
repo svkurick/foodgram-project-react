@@ -57,6 +57,7 @@ class Recipes(models.Model):
         User,
         verbose_name='Автор',
         on_delete=models.CASCADE,
+        related_name='recipes'
     )
     tag = models.ManyToManyField(
         Tags,

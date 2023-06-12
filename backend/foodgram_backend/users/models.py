@@ -6,7 +6,7 @@ class User(AbstractUser):
     email = models.EmailField(
         verbose_name='email',
         unique=True,
-        blank=True
+        blank=False
     )
     username = models.CharField(
         verbose_name='Имя пользователя',
@@ -32,7 +32,7 @@ class User(AbstractUser):
 
     groups = models.ManyToManyField(
         Group,
-        related_name='auth_user',  # Добавьте эту строку
+        related_name='auth_user',
         blank=True,
         verbose_name='groups',
         help_text='The groups this user belongs to.',
@@ -41,11 +41,15 @@ class User(AbstractUser):
 
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name='auth_user',  # Добавьте эту строку
+        related_name='auth_user',
         blank=True,
         verbose_name='user permissions',
         help_text='Specific permissions for this user.',
         related_query_name='user',
+    )
+    is_subscribed = models.BooleanField(
+        verbose_name='Подписки?',
+        default=False
     )
 
     class Meta:
