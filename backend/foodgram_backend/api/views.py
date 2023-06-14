@@ -2,18 +2,21 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, filters, status
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.tokens import Token
 from rest_framework_simplejwt.tokens import UntypedToken
+import base64
 
+from recipes.models import Tags, Ingredients, Recipes
 from .serializers import (
     UserSerializer,
     GetTokenSerializer,
-    ChangePasswordSerializer
+    ChangePasswordSerializer,
+    TagsSerializer
 )
 
 User = get_user_model()
@@ -41,13 +44,9 @@ class GetTokenAPIView(APIView):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def del_token(request):
-    token = request.data.get('token')
-    if token:
-        untyped_token = UntypedToken(token)
-        blacklisted_token = BlacklistedToken(token=untyped_token['jti'])
-        blacklisted_token.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    return Response({'details': 'Токен не найден'})
+    token = RefreshToken(request.data.get('access'))
+    token.blacklist()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -105,3 +104,10 @@ def change_password(request):
         user.save()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+class TagsViewSet(viewsets.ModelViewSet):
+    queryset = Tags.objects.all()
+    serializer_class = TagsSerializer
+    permission_classes = (AllowAny,)
+    lookup_field = 'id'
+    filter_backends = (filters.SearchFilter,)

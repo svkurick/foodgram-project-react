@@ -6,10 +6,12 @@ from .views import (
     UserViewSet,
     GetTokenAPIView,
     change_password,
-    del_token
+    del_token,
+    TagsViewSet
 )
 
 router = DefaultRouter()
+router.register(r'tags', TagsViewSet)
 router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
@@ -17,5 +19,6 @@ urlpatterns = [
     path('auth/token/login/', GetTokenAPIView.as_view()),
     path('auth/token/logout/', del_token),
     path('users/set_password/', change_password),
+    # path('tags/<id>/', get_tags),
     path('', include(router.urls))
 ]

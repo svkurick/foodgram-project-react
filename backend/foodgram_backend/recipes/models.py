@@ -1,7 +1,9 @@
 from django.db import models
-
 from .utils import slugify
-from users.models import User
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 
 class Tags(models.Model):
@@ -25,6 +27,7 @@ class Tags(models.Model):
     class Meta:
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
+        ordering = ['-id']
 
     def save(self, *args, **kwargs):
         if not self.slug:

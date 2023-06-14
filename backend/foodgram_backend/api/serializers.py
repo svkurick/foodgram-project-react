@@ -3,8 +3,9 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.generics import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework_simplejwt.tokens import RefreshToken
 
-
+from recipes.models import Tags, Ingredients, Recipes
 from .validators import (
     validate_username,
     validate_email,
@@ -81,3 +82,16 @@ class GetTokenSerializer(serializers.Serializer):
 
     def validate_password(self, password):
         return validate_user_password(password, self.instance)
+
+
+class TagsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = (
+            'id',
+            'name',
+            'color',
+            'slug'
+        )
+        model = Tags
+        lookup_field = 'slug'
