@@ -7,10 +7,14 @@ from .views import (
     GetTokenAPIView,
     change_password,
     del_token,
-    TagsViewSet
+    TagsViewSet,
+    RecipesViewSet,
+    IngredientsViewSet
 )
 
 router = DefaultRouter()
+router.register(r'ingredients', IngredientsViewSet)
+router.register(r'recipes', RecipesViewSet)
 router.register(r'tags', TagsViewSet)
 router.register(r'users', UserViewSet, basename='user')
 

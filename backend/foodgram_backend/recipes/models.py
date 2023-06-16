@@ -1,7 +1,9 @@
 from django.db import models
 from .utils import slugify
 from django.contrib.auth import get_user_model
-
+from django.core import validators
+from django.db.models import UniqueConstraint
+from django.core.validators import MinValueValidator
 
 User = get_user_model()
 
@@ -62,9 +64,10 @@ class Recipes(models.Model):
         on_delete=models.CASCADE,
         related_name='recipes'
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tags,
         verbose_name='Тэг',
+        blank=True
     )
     image = models.ImageField(
         upload_to='recipes/images/',
@@ -82,7 +85,7 @@ class Recipes(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления в минутах'
     )
-    ingredient = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         Ingredients,
         verbose_name='Ингредиент',
     )
@@ -94,7 +97,69 @@ class Recipes(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ['-id']
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.name
+
+
+class RecipeIngredient(models.Model):
+    """ Модель связи ингредиента и рецепта. """
+
+    recipe = models.ForeignKey(
+        Recipes,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт'
+    )
+    ingredient = models.ForeignKey(
+        Ingredients,
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиент'
+    )
+    amount = models.IntegerField(
+        'Количество',
+        validators=[MinValueValidator(1)]
+    )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='recipe_ingredient_unique'
+            )
+        ]
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Количество ингридиента'
+        verbose_name_plural = 'Количество ингридиентов'
+
+    def __str__(self):
+        return f'{self.recipe} - {self.ingredient}'
+
+# class IngredientAmount(models.Model):
+#     ingredients = models.ForeignKey(
+#         Ingredients,
+#         on_delete=models.CASCADE,
+#         verbose_name='Ингредиент',
+#         related_name='amount'
+#     )
+#     recipes = models.ForeignKey(
+#         Recipes,
+#         on_delete=models.CASCADE,
+#         verbose_name='Рецепт',
+#     )
+#     amount = models.PositiveSmallIntegerField(
+#         validators=(
+#             validators.MinValueValidator(
+#                 1, message='Минимальное количество ингредиентов - 1'),),
+#         verbose_name='Количество',
+#     )
+#
+#     class Meta:
+#         ordering = ['-id']
+#         verbose_name = 'Количество ингридиента'
+#         verbose_name_plural = 'Количество ингридиентов'
+
+    # def __str__(self):
+    #     return f'{self.recipes} - {self.ingredients}'

@@ -11,12 +11,19 @@ from rest_framework_simplejwt.tokens import Token
 from rest_framework_simplejwt.tokens import UntypedToken
 import base64
 
-from recipes.models import Tags, Ingredients, Recipes
+from .permissions import IsAuthorOrAdminOrReadOnly
+from .filters import IngredientsFilter
+from .pagination import CustomPagination
+from recipes.models import Tags, Ingredients, Recipes, RecipeIngredient
 from .serializers import (
     UserSerializer,
     GetTokenSerializer,
     ChangePasswordSerializer,
-    TagsSerializer
+    TagsSerializer,
+    RecipesSerializer,
+    IngredientsSerializer,
+    IngredientAmountSerializer,
+    CreateRecipesSerializer
 )
 
 User = get_user_model()
@@ -111,3 +118,30 @@ class TagsViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
     lookup_field = 'id'
     filter_backends = (filters.SearchFilter,)
+
+
+class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [AllowAny, ]
+    pagination_class = None
+    serializer_class = IngredientsSerializer
+    queryset = Ingredients.objects.all()
+    filter_backends = [IngredientsFilter, ]
+    search_fields = ['^name', ]
+
+
+class RecipesViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
+    pagination_class = CustomPagination
+    queryset = Recipes.objects.select_related('author').all()
+    serializer_class = RecipesSerializer
+    lookup_field = 'id'
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return RecipesSerializer
+        return CreateRecipesSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'request': self.request})
+        return context
