@@ -137,29 +137,32 @@ class RecipeIngredient(models.Model):
     def __str__(self):
         return f'{self.recipe} - {self.ingredient}'
 
-# class IngredientAmount(models.Model):
-#     ingredients = models.ForeignKey(
-#         Ingredients,
-#         on_delete=models.CASCADE,
-#         verbose_name='Ингредиент',
-#         related_name='amount'
-#     )
-#     recipes = models.ForeignKey(
-#         Recipes,
-#         on_delete=models.CASCADE,
-#         verbose_name='Рецепт',
-#     )
-#     amount = models.PositiveSmallIntegerField(
-#         validators=(
-#             validators.MinValueValidator(
-#                 1, message='Минимальное количество ингредиентов - 1'),),
-#         verbose_name='Количество',
-#     )
-#
-#     class Meta:
-#         ordering = ['-id']
-#         verbose_name = 'Количество ингридиента'
-#         verbose_name_plural = 'Количество ингридиентов'
 
-    # def __str__(self):
-    #     return f'{self.recipes} - {self.ingredients}'
+class Favorite(models.Model):
+    """ Модель избранного. """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+        related_name='favorites',
+    )
+    recipe = models.ForeignKey(
+        Recipes,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+        related_name='favorites',
+    )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='user_favorite_unique'
+            )
+        ]
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
+
+    def __str__(self):
+        return f'{self.user} - {self.recipe}'

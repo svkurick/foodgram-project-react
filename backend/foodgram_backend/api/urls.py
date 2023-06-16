@@ -9,7 +9,10 @@ from .views import (
     del_token,
     TagsViewSet,
     RecipesViewSet,
-    IngredientsViewSet
+    IngredientsViewSet,
+    FavoriteView,
+    SubscribeView,
+    ShowSubscriptionsView
 )
 
 router = DefaultRouter()
@@ -23,6 +26,10 @@ urlpatterns = [
     path('auth/token/login/', GetTokenAPIView.as_view()),
     path('auth/token/logout/', del_token),
     path('users/set_password/', change_password),
-    # path('tags/<id>/', get_tags),
+    path('users/subscriptions/', ShowSubscriptionsView.as_view()),
+    path('users/<int:id>/subscribe/', SubscribeView.as_view()),
+    path(
+        'recipes/<int:id>/favorite/', FavoriteView.as_view(), name='favorite'
+    ),
     path('', include(router.urls))
 ]
