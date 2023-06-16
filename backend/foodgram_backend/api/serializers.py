@@ -13,7 +13,8 @@ from recipes.models import (
     Ingredients,
     Recipes,
     RecipeIngredient,
-    Favorite
+    Favorite,
+    WishList
 )
 from users.models import Subscription
 from .validators import (
@@ -365,5 +366,18 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return ShowSubscriptionsSerializer(instance.author, context={
+            'request': self.context.get('request')
+        }).data
+
+
+class WishListSerializer(serializers.ModelSerializer):
+    """ Сериализатор для списка покупок. """
+
+    class Meta:
+        model = WishList
+        fields = ['user', 'recipe']
+
+    def to_representation(self, instance):
+        return ShowFavoriteSerializer(instance.recipe, context={
             'request': self.context.get('request')
         }).data

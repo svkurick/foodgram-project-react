@@ -1,16 +1,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework import viewsets, permissions, filters, status
-from rest_framework_simplejwt.tokens import Token
-from rest_framework_simplejwt.tokens import UntypedToken
-import base64
+from rest_framework import viewsets, filters, status
+from django.db.models import Sum
+from django.http import HttpResponse
 
 from .permissions import IsAuthorOrAdminOrReadOnly
 from .filters import IngredientsFilter
@@ -20,7 +18,8 @@ from recipes.models import (
     Ingredients,
     Recipes,
     RecipeIngredient,
-    Favorite
+    Favorite,
+    WishList
 )
 from users.models import Subscription
 from .serializers import (
@@ -33,7 +32,8 @@ from .serializers import (
     CreateRecipesSerializer,
     FavoriteSerializer,
     SubscriptionSerializer,
-    ShowSubscriptionsSerializer
+    ShowSubscriptionsSerializer,
+    WishListSerializer
 )
 
 User = get_user_model()
@@ -233,3 +233,55 @@ class ShowSubscriptionsView(ListAPIView):
             page, many=True, context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+
+
+class ShoppingCartView(APIView):
+    """ Добавление рецепта в корзину или его удаление. """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, id):
+        data = {
+            'user': request.user.id,
+            'recipe': id
+        }
+        recipe = get_object_or_404(Recipes, id=id)
+        if not WishList.objects.filter(
+           user=request.user, recipe=recipe).exists():
+            serializer = WishListSerializer(
+                data=data, context={'request': request}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        recipe = get_object_or_404(Recipes, id=id)
+        if WishList.objects.filter(
+           user=request.user, recipe=recipe).exists():
+            WishList.objects.filter(user=request.user, recipe=recipe).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def download_shopping_cart(request):
+    ingredient_list = "Cписок покупок:"
+    ingredients = RecipeIngredient.objects.filter(
+        recipe__shopping_cart__user=request.user
+    ).values(
+        'ingredient__name', 'ingredient__measurement_unit'
+    ).annotate(amount=Sum('amount'))
+    for num, i in enumerate(ingredients):
+        ingredient_list += (
+            f"\n{i['ingredient__name']} - "
+            f"{i['amount']} {i['ingredient__measurement_unit']}"
+        )
+        if num < ingredients.count() - 1:
+            ingredient_list += ', '
+    file = 'shopping_list'
+    response = HttpResponse(ingredient_list, 'Content-Type: application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{file}.pdf"'
+    return response
