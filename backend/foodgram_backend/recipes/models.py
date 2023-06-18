@@ -125,8 +125,6 @@ class RecipeIngredient(models.Model):
                 name='recipe_ingredient_unique'
             )
         ]
-
-    class Meta:
         ordering = ['-id']
         verbose_name = 'Количество ингридиента'
         verbose_name_plural = 'Количество ингридиентов'

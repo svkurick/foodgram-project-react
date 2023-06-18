@@ -7,7 +7,7 @@ from .models import (
     RecipeIngredient,
     Favorite,
     WishList
-    )
+)
 
 
 class RecipesAdmin(admin.ModelAdmin):

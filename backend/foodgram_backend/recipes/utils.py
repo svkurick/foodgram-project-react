@@ -10,9 +10,7 @@ alphabet = {
 
 
 def slugify(slug: str) -> str:
-    """
-    Транслитерация slug.
-    """
+    """Транслитерация slug."""
     trans_slug = ''
     for symbol in slug.lower():
         trans_symbol = alphabet.get(symbol, symbol)
