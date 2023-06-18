@@ -1,9 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db.models import UniqueConstraint
+from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
+    """Модель пользователя."""
     email = models.EmailField(
         verbose_name='email',
         unique=True,
@@ -31,25 +31,25 @@ class User(AbstractUser):
         null=False
     )
 
-    groups = models.ManyToManyField(
-        Group,
-        related_name='auth_user',
-        blank=True,
-        verbose_name='groups',
-        help_text='The groups this user belongs to.',
-        related_query_name='user',
-    )
+    # groups = models.ManyToManyField(
+    #     Group,
+    #     related_name='auth_user',
+    #     blank=True,
+    #     verbose_name='groups',
+    #     help_text='The groups this user belongs to.',
+    #     related_query_name='user',
+    # )
 
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name='auth_user',
-        blank=True,
-        verbose_name='user permissions',
-        help_text='Specific permissions for this user.',
-        related_query_name='user',
-    )
+    # user_permissions = models.ManyToManyField(
+    #     Permission,
+    #     related_name='auth_user',
+    #     blank=True,
+    #     verbose_name='user permissions',
+    #     help_text='Specific permissions for this user.',
+    #     related_query_name='user',
+    # )
     is_subscribed = models.BooleanField(
-        verbose_name='Подписки?',
+        verbose_name='На меня подписаны',
         default=False
     )
 
@@ -58,10 +58,12 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
         ordering = ['-id']
 
+    def __str__(self):
+        return self.username
+
 
 class Subscription(models.Model):
-    """ Модель подписок. """
-
+    """ Модель подписок пользователя на авторов."""
     user = models.ForeignKey(
         User,
         related_name='follower',
@@ -77,7 +79,7 @@ class Subscription(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(
+            models.UniqueConstraint(
                 fields=['user', 'author'],
                 name='user_author_unique'
             )

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 import re
-from rest_framework.generics import get_object_or_404
 
 from users.models import User
 

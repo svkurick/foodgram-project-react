@@ -1,15 +1,13 @@
-from django.db import models
 from .utils import slugify
+from django.db import models
 from django.contrib.auth import get_user_model
-from django.core import validators
-from django.db.models import UniqueConstraint
 from django.core.validators import MinValueValidator
 
 User = get_user_model()
 
 
 class Tags(models.Model):
-    """Модель с тегами для рецептов"""
+    """Модель тэгов для рецептов."""
     slug = models.SlugField(
         verbose_name='Slug',
         unique=True,
@@ -38,7 +36,7 @@ class Tags(models.Model):
 
 
 class Ingredients(models.Model):
-    """Модель с ингредиентами для рецептов"""
+    """Модель ингредиентов для рецептов."""
     name = models.CharField(
         verbose_name='Ингредиент',
         max_length=256,
@@ -57,7 +55,7 @@ class Ingredients(models.Model):
 
 
 class Recipes(models.Model):
-    """Модель рецепта"""
+    """Модель рецепта."""
     author = models.ForeignKey(
         User,
         verbose_name='Автор',
@@ -104,8 +102,7 @@ class Recipes(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    """ Модель связи ингредиента и рецепта. """
-
+    """ Модель связи рецепта с ингредиентом."""
     recipe = models.ForeignKey(
         Recipes,
         on_delete=models.CASCADE,
@@ -123,7 +120,7 @@ class RecipeIngredient(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(
+            models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
                 name='recipe_ingredient_unique'
             )
@@ -139,8 +136,7 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
-    """ Модель избранного. """
-
+    """ Модель пользователя с избранным рецептом."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -156,7 +152,7 @@ class Favorite(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(
+            models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='user_favorite_unique'
             )
@@ -169,8 +165,7 @@ class Favorite(models.Model):
 
 
 class WishList(models.Model):
-    """ Модель списка покупок. """
-
+    """ Модель списка покупок."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -186,7 +181,7 @@ class WishList(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(
+            models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='user_shoppingcart_unique'
             )

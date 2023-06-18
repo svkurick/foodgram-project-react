@@ -13,7 +13,7 @@ from .views import (
     FavoriteView,
     SubscribeView,
     ShowSubscriptionsView,
-    ShoppingCartView,
+    WishListView,
     download_shopping_cart
 )
 
@@ -33,7 +33,7 @@ urlpatterns = [
     path(
         'recipes/<int:id>/favorite/', FavoriteView.as_view(), name='favorite'
     ),
-    path('recipes/<int:id>/shopping_cart/', ShoppingCartView.as_view()),
+    path('recipes/<int:id>/shopping_cart/', WishListView.as_view()),
     path('recipes/download_shopping_cart/', download_shopping_cart),
     path('', include(router.urls))
 ]
