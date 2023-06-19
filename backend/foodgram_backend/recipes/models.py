@@ -1,7 +1,8 @@
 from .utils import slugify
+
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 
@@ -12,14 +13,14 @@ class Tags(models.Model):
         verbose_name='Slug',
         unique=True,
         max_length=50,
-        blank=True,
+        blank=False,
         help_text='Если оставить пустым, то заполнится автоматически.'
     )
     name = models.CharField(
         verbose_name='Тэг',
         max_length=256,
     )
-    color = models.CharField(max_length=16)
+    color = models.CharField(max_length=7)
 
     def __str__(self):
         return self.name
@@ -32,6 +33,13 @@ class Tags(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name[:50])
+        else:
+            try:
+                self.validate_unique()
+            except ValueError:
+                raise ValueError(
+                    'Такой slug уже используется! Придумайте другой'
+                )
         super().save(*args, **kwargs)
 
 
@@ -47,6 +55,12 @@ class Ingredients(models.Model):
     )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='recipe_measurement_unit_unique'
+            )
+        ]
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
@@ -81,7 +95,11 @@ class Recipes(models.Model):
 
     )
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления в минутах'
+        verbose_name='Время приготовления в минутах',
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(28800)
+        ]
     )
     ingredients = models.ManyToManyField(
         Ingredients,

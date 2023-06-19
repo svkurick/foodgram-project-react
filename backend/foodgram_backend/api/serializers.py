@@ -1,7 +1,8 @@
+import base64
+
 from rest_framework import serializers, validators
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-import base64
 
 from recipes.models import (
     Tags,
@@ -34,6 +35,7 @@ class Base64ImageField(serializers.ImageField):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели пользователя."""
+
     username = serializers.CharField(
         max_length=150,
         required=True,
@@ -67,6 +69,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         """Метод указывает подписан ли юзер, делающий запрос, на автора."""
+
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
@@ -77,6 +80,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ChangePasswordSerializer(UserSerializer):
     """Сериализатор смены пароля пользователя."""
+
     new_password = serializers.CharField(
         max_length=150,
         required=True,
@@ -98,6 +102,7 @@ class ChangePasswordSerializer(UserSerializer):
 
 class GetTokenSerializer(serializers.Serializer):
     """Сериалилзатор получения токена."""
+
     email = serializers.CharField(
         max_length=150,
         required=True,
@@ -128,6 +133,7 @@ class TagsSerializer(serializers.ModelSerializer):
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
     """ Сериализатор модели, связывающей рецепт с ингредиентами."""
+
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -153,6 +159,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
 
 class RecipesSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов."""
+
     author = UserSerializer(read_only=True, many=False)
     ingredients = serializers.SerializerMethodField()
     image = serializers.ImageField(required=False)
@@ -198,6 +205,7 @@ class RecipesSerializer(serializers.ModelSerializer):
 
 class AddIngredientRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор добавления ингредиента в рецепт."""
+
     id = serializers.IntegerField()
     ingredient = serializers.CharField(read_only=True)
     amount = serializers.IntegerField()
@@ -209,6 +217,7 @@ class AddIngredientRecipeSerializer(serializers.ModelSerializer):
 
 class CreateRecipesSerializer(serializers.ModelSerializer):
     """Сериализатор создания и обновления рецепта."""
+
     author = UserSerializer(read_only=True)
     ingredients = AddIngredientRecipeSerializer(
         many=True
@@ -318,6 +327,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 class ShowSubscriptionsSerializer(serializers.ModelSerializer):
     """ Сериализатор отображения подписок пользователя на авторов рецептов."""
+
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -359,6 +369,7 @@ class ShowSubscriptionsSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """ Сериализатор подписок польщователя на авторов рецептов."""
+
     class Meta:
         model = Subscription
         fields = ('user', 'author')
@@ -378,6 +389,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 class WishListSerializer(serializers.ModelSerializer):
     """Сериализатор списка покупок."""
+
     class Meta:
         model = WishList
         fields = ('user', 'recipe')

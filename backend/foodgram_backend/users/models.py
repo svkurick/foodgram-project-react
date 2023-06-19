@@ -31,23 +31,6 @@ class User(AbstractUser):
         null=False
     )
 
-    # groups = models.ManyToManyField(
-    #     Group,
-    #     related_name='auth_user',
-    #     blank=True,
-    #     verbose_name='groups',
-    #     help_text='The groups this user belongs to.',
-    #     related_query_name='user',
-    # )
-
-    # user_permissions = models.ManyToManyField(
-    #     Permission,
-    #     related_name='auth_user',
-    #     blank=True,
-    #     verbose_name='user permissions',
-    #     help_text='Specific permissions for this user.',
-    #     related_query_name='user',
-    # )
     is_subscribed = models.BooleanField(
         verbose_name='На меня подписаны',
         default=False
