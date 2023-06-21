@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListAPIView
@@ -10,6 +11,7 @@ from rest_framework import viewsets, filters, status
 from django.db.models import Sum
 from django.http import HttpResponse
 
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrAdminOrReadOnly
 from .pagination import CustomPagination
 from recipes.models import (
@@ -68,7 +70,7 @@ def del_token(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Вьюсет можели пользователя."""
+    """Вьюсет модели пользователя."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter,)
@@ -129,6 +131,7 @@ def change_password(request):
 class TagsViewSet(viewsets.ModelViewSet):
     """Вьюсет тэгов."""
     queryset = Tags.objects.all()
+    pagination_class = None
     serializer_class = TagsSerializer
     permission_classes = (AllowAny,)
 
@@ -139,6 +142,8 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
     serializer_class = IngredientsSerializer
     queryset = Ingredients.objects.all()
+    filter_backends = [IngredientFilter, ]
+    search_fields = ['^name', ]
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
@@ -147,6 +152,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     queryset = Recipes.objects.select_related('author').all()
     serializer_class = RecipesSerializer
+    filter_backends = [DjangoFilterBackend, ]
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
