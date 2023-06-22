@@ -29,8 +29,10 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-123')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 AUTH_USER_MODEL = 'users.User'
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
@@ -47,7 +49,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    # 'django_filters',
     'rest_framework_simplejwt.token_blacklist',
     'recipes',
     'users',
