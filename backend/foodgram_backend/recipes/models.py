@@ -83,8 +83,9 @@ class Recipes(models.Model):
     )
     image = models.ImageField(
         upload_to='recipes/images/',
-        null=True,
-        default=None
+        null=False,
+        default=None,
+        blank=False
     )
     name = models.CharField(
         verbose_name='Название рецепта',
@@ -133,7 +134,10 @@ class RecipeIngredient(models.Model):
     )
     amount = models.IntegerField(
         'Количество',
-        validators=[MinValueValidator(1)]
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5000)
+        ]
     )
 
     class Meta:

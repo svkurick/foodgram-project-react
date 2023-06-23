@@ -25,3 +25,10 @@ def validate_user_password(password, user):
     if not user.check_password(password):
         raise serializers.ValidationError('Некорректный пароль')
     return password
+
+
+def validate_color(color):
+    if not re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+        raise serializers.ValidationError(
+            'Недопустимый Hex-код цвета')
+    return color

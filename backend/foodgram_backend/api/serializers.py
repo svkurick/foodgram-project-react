@@ -3,6 +3,7 @@ import base64
 from rest_framework import serializers, validators
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from recipes.models import (
     Tags,
@@ -17,6 +18,7 @@ from .validators import (
     validate_username,
     validate_email,
     validate_user_password,
+    validate_color
 )
 
 User = get_user_model()
@@ -120,6 +122,11 @@ class GetTokenSerializer(serializers.Serializer):
 
 class TagsSerializer(serializers.ModelSerializer):
     """Сериализатор тэгов."""
+    color = serializers.CharField(
+        max_length=7,
+        required=True,
+        validators=[validate_color]
+    )
 
     class Meta:
         model = Tags
@@ -161,9 +168,9 @@ class RecipesSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов."""
 
     author = UserSerializer(read_only=True, many=False)
-    ingredients = serializers.SerializerMethodField()
-    image = serializers.ImageField(required=False)
-    tags = TagsSerializer(read_only=True, many=True, required=False)
+    ingredients = serializers.SerializerMethodField(required=False)
+    image = serializers.ImageField(required=True)
+    tags = TagsSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -208,7 +215,9 @@ class AddIngredientRecipeSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField()
     ingredient = serializers.CharField(read_only=True)
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(
+        validators=[MaxValueValidator(5000), MinValueValidator(1)]
+    )
 
     class Meta:
         model = RecipeIngredient
@@ -220,11 +229,15 @@ class CreateRecipesSerializer(serializers.ModelSerializer):
 
     author = UserSerializer(read_only=True)
     ingredients = AddIngredientRecipeSerializer(
-        many=True
+        many=True,
+        required=True
     )
-    image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField(
+        required=True,
+        allow_null=False)
     tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tags.objects.all(), many=True
+        queryset=Tags.objects.all(),
+        many=True,
     )
 
     class Meta:
@@ -289,10 +302,17 @@ class CreateRecipesSerializer(serializers.ModelSerializer):
             instance.cooking_time
         )
         instance.tags.set(validated_data.get('tags', instance.tags))
+        old_ingredients = RecipeIngredient.objects.filter(recipe=instance)
+        old_ingredients.delete()
         ingredients = validated_data.pop('ingredients')
+        if len(ingredients) < 1:
+            raise serializers.ValidationError({
+                'ingredients': 'Количество ингредиента должно быть больше 0!'
+            })
         for ingredient_id in ingredients:
             ingredient = Ingredients.objects.get(id=ingredient_id['id'])
             instance.ingredients.add(ingredient)
+        self.create_ingredients(ingredients, instance)
         instance.save()
         return instance
 
