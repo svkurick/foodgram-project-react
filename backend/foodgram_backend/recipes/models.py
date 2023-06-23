@@ -2,7 +2,10 @@ from .utils import slugify
 
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import (
+    MinValueValidator, MaxValueValidator, RegexValidator
+)
+
 
 User = get_user_model()
 
@@ -20,7 +23,15 @@ class Tags(models.Model):
         verbose_name='Тэг',
         max_length=256,
     )
-    color = models.CharField(max_length=7)
+    color = models.CharField(
+        max_length=7,
+        validators=[
+            RegexValidator(
+                regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
+                message='Недопустимый Hex-код цвета'
+            )
+        ]
+        )
 
     def __str__(self):
         return self.name
