@@ -31,7 +31,7 @@ class Tags(models.Model):
                 message='Недопустимый Hex-код цвета'
             )
         ]
-        )
+    )
 
     def __str__(self):
         return self.name
