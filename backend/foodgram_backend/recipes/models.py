@@ -90,7 +90,7 @@ class Recipes(models.Model):
     tags = models.ManyToManyField(
         Tags,
         verbose_name='Тэг',
-        blank=True
+        blank=False,
     )
     image = models.ImageField(
         upload_to='recipes/images/',
@@ -116,6 +116,7 @@ class Recipes(models.Model):
     ingredients = models.ManyToManyField(
         Ingredients,
         verbose_name='Ингредиент',
+        blank=False
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,

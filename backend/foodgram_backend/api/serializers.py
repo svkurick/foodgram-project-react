@@ -286,7 +286,15 @@ class CreateRecipesSerializer(serializers.ModelSerializer):
             author=author,
             **validated_data
         )
+        if len(tags) < 1:
+            raise serializers.ValidationError({
+                'tags': 'Количество тэгов должно быть больше 0!'
+            })
         recipe.tags.set(tags)
+        if len(ingredients) < 1:
+            raise serializers.ValidationError({
+                'ingredients': 'Количество ингредиента должно быть больше 0!'
+            })
         for ingredient_id in ingredients:
             ingredient = Ingredients.objects.get(id=ingredient_id['id'])
             recipe.ingredients.add(ingredient)
@@ -301,6 +309,10 @@ class CreateRecipesSerializer(serializers.ModelSerializer):
             'cooking_time',
             instance.cooking_time
         )
+        if len(validated_data.get('tags', instance.tags)) < 1:
+            raise serializers.ValidationError({
+                'tags': 'Количество тэгов должно быть больше 0!'
+            })
         instance.tags.set(validated_data.get('tags', instance.tags))
         old_ingredients = RecipeIngredient.objects.filter(recipe=instance)
         old_ingredients.delete()
